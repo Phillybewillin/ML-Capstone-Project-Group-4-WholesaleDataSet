@@ -2,8 +2,7 @@ import os
 
 def setup_project_structure():
     """
-    Programmatically ensure that data directory and required files exist.
-    Person 1 is responsible for setup, .gitignore, and README.md.
+    Setup project structure
     """
     os.makedirs('data', exist_ok=True)
     if not os.path.exists('.gitignore'):

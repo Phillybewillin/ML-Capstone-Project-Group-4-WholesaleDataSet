@@ -6,7 +6,7 @@ def run_kmeans(data, k):
     """
     kmeans = KMeans(n_clusters=k, random_state=42, n_init='auto')
     labels = kmeans.fit_predict(data)
-    return labels
+    return labels, kmeans
 
 def run_hierarchical(data, n_clusters):
     """
@@ -14,7 +14,7 @@ def run_hierarchical(data, n_clusters):
     """
     hc = AgglomerativeClustering(n_clusters=n_clusters)
     labels = hc.fit_predict(data)
-    return labels
+    return labels, hc
 
 def run_dbscan(data, eps, min_samples):
     """
@@ -22,4 +22,4 @@ def run_dbscan(data, eps, min_samples):
     """
     dbscan = DBSCAN(eps=eps, min_samples=min_samples)
     labels = dbscan.fit_predict(data)
-    return labels
+    return labels, dbscan
