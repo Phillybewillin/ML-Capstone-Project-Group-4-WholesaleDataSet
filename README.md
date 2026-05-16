@@ -29,10 +29,10 @@ This capstone applies four core unsupervised learning techniques to a real-world
 | Technique | Purpose |
 |---|---|
 | **EDA** | Understand feature distributions, correlations, and outliers |
-| **PCA** | Reduce dimensionality; retain ≥ 95% explained variance |
+| **PCA** | Reduce dimensionality to 3 components — retaining 73.77% explained variance |
 | **K-Means** | Partition-based clustering; tuned via elbow method |
 | **Hierarchical** | Linkage-based clustering; visualised via dendrogram |
-| **DBSCAN** | Density-based clustering; tuned via k-distance graph |
+| **DBSCAN** | Density-based clustering; tuned via k-distance graph (ε=0.8) |
 
 All three algorithms are evaluated on three mandatory internal metrics (Silhouette, Davies-Bouldin, Calinski-Harabasz) and compared in a summary table.
 
@@ -45,7 +45,7 @@ ML-Capstone-Project-Group-4-WholesaleDataSet/
 │
 ├── data/
 │   ├── README.md                   ← Download instructions for the dataset
-│   └── wholesale_customers.csv     ← (Downloaded Dataset)
+│   └── wholesale_customers.csv     ← (NOT committed — download manually)
 │
 ├── notebooks/
 │   └── Capstone Project Group 4.ipynb  ← Exploratory notebook (EDA & prototyping)
@@ -76,7 +76,7 @@ ML-Capstone-Project-Group-4-WholesaleDataSet/
 - **Instances:** 440
 - **Features:** 8 numeric (annual spending in monetary units across product categories)
 - **Ground Truth:** None — purely unsupervised
-- **Best suited for:** Marketing segmentation, K-Means, DBSCAN
+- **Best suited for:** Marketing segmentation
 
 | Feature | Description |
 |---|---|
@@ -85,11 +85,11 @@ ML-Capstone-Project-Group-4-WholesaleDataSet/
 | Grocery | Annual spending on grocery products |
 | Frozen | Annual spending on frozen products |
 | Detergents_Paper | Annual spending on detergents and paper |
-| Delicatessen | Annual spending on delicatessen products |
+| Delicassen | Annual spending on delicatessen products |
 | Channel | Sales channel (1 = HoReCa, 2 = Retail) |
 | Region | Geographic region (1–3) |
 
-📥 **Download:** [archive.ics.uci.edu/dataset/292](https://archive.ics.uci.edu/dataset/292/wholesale+customers+data)
+📥 **Download:** [archive.ics.uci.edu/dataset/292](https://archive.ics.uci.edu/dataset/292/wholesale+customers+data)  
 Place the file at `data/wholesale_customers.csv`.
 
 ---
@@ -103,12 +103,12 @@ EDA: Stats, Heatmap, Boxplots, Pairplot (eda.py)
        ↓
 Preprocessing: Impute → StandardScale (preprocessing.py)
        ↓
-PCA: Scree Plot → 2-Component Reduction (dimensionality.py)
+PCA: Scree Plot → 3-Component Reduction — 73.77% variance (dimensionality.py)
        ↓
 Hyperparameter Tuning:
-  ├── Elbow Plot        → optimal k  (K-Means)
-  ├── Dendrogram        → optimal n  (Hierarchical)
-  └── K-Distance Graph  → optimal ε  (DBSCAN)
+  ├── Elbow Plot        → optimal k = 5  (K-Means)
+  ├── Dendrogram        → optimal n = 5  (Hierarchical)
+  └── K-Distance Graph  → optimal ε = 0.8  (DBSCAN)
        ↓
 Clustering (clustering.py):
   ├── K-Means
@@ -169,7 +169,7 @@ python main.py
 
 The pipeline will:
 1. Run EDA and display all plots (close each window to advance)
-2. Generate the PCA scree plot
+2. Generate the PCA scree plot (3 components, 73.77% variance)
 3. Display hyperparameter tuning plots for all three algorithms
 4. Run K-Means, Hierarchical, and DBSCAN
 5. Print evaluation metrics and a comparison table to the terminal
@@ -223,32 +223,33 @@ jupyter notebook notebooks/Capstone\ Project\ Group\ 4.ipynb
 
 | Algorithm | Silhouette ↑ | Davies-Bouldin ↓ | Calinski-Harabasz ↑ |
 |---|---|---|---|
-| **K-Means** | 0.5320 | 0.6616 | **446.58** |
-| **Hierarchical** | 0.5381 | 0.6343 | 406.59 |
-| **DBSCAN** | **0.8552** | **0.1017** | 59.19 |
+| **K-Means (k=5)** | **0.4577** ★ | 0.7661 | **270.75** ★ |
+| **Hierarchical (k=5, Ward)** | 0.4410 | 0.7733 | 234.92 |
+| **DBSCAN (ε=0.8, ms=5)** | 0.0489 | 1.3274 | 49.23 |
 
-↑ higher is better &nbsp;|&nbsp; ↓ lower is better
+↑ higher is better &nbsp;|&nbsp; ↓ lower is better &nbsp;|&nbsp; ★ = best in column
 
 ### Key Observations
 
-- **DBSCAN** achieves the best Silhouette (0.855) and Davies-Bouldin (0.102), indicating it finds the tightest, most well-separated density clusters. Its low Calinski-Harabasz (59.19) is expected — this metric favours many compact clusters, and DBSCAN produced fewer, larger ones.
-- **Hierarchical** marginally outperforms K-Means on Silhouette and Davies-Bouldin, suggesting Ward linkage captures the cluster structure of this dataset slightly better than centroid-based partitioning.
-- **K-Means** scores highest on Calinski-Harabasz (446.58), reflecting stronger between-cluster vs within-cluster dispersion across its 5 partitions — useful for marketing segmentation where distinct, balanced groups are preferred.
+- **K-Means** achieves the best Silhouette (0.4577) and Calinski-Harabasz (270.75), producing the most well-separated and globally compact cluster structure. It is the recommended algorithm for marketing segmentation on this dataset, with directly interpretable centroids representing mean customer spending profiles.
+- **Hierarchical** performs comparably to K-Means (Silhouette 0.4410, DBI 0.7733), confirming Ward linkage captures a similar cluster structure. The dendrogram provides additional exploratory value.
+- **DBSCAN** scores poorly across all three metrics (Silhouette 0.0489, DBI 1.3274, CH 49.23). This is a meaningful finding - the Wholesale Customers dataset has a continuous, globular structure with no density-based separation, ruling out DBSCAN for this segmentation task. 6 clusters were identified with 32 noise points (7.3% of the dataset).
 - No ground truth labels exist for this dataset, so external metrics (ARI, NMI) are not applicable.
 
 ---
 
 ## Team Members
 
-| Member | Contribution |
-|---|---|
-| Denis | Repo setup, `initialization.py`, `.gitignore`, `README.md` |
-| Vaz | `data_loader.py` — CSV loading & error handling |
-| Tervil  | `eda.py` — Summary stats, heatmap, boxplots, pairplot |
-| Daniel | `preprocessing.py` — Sklearn imputer → scaler pipeline |
-| Mike | `dimensionality.py` — PCA + scree plot |
-| Ian | `clustering.py` — K-Means, Hierarchical & DBSCAN implementation |
-| Markphil | `Evaluation.py` — Metrics, elbow, k-distance, dendrogram, comparison table |
+| Member | Admission No. | Contribution |
+|---|---|---|
+| Dennis Momanyi | SCT213-C002-0082/2023 | Repo setup, `initialization.py`, `.gitignore`, `README.md` |
+| Edwin Vaz Muiruri | SCT213-C002-0133/2023 | `data_loader.py` — CSV loading & error handling |
+| Tervil Moywaywa | SCT213-C002-0012/2023 | `eda.py` — Summary stats, heatmap, boxplots, pairplot |
+| Daniel Mburu | SCT213-C002-0008/2023 | `preprocessing.py` — Sklearn imputer → scaler pipeline |
+| Michael Ahereza | SCT213-C002-0097/2022 | `dimensionality.py` — PCA + scree plot |
+| Ian Nyaberi | SCT213-C002-0137/2023 | `clustering.py` — K-Means, Hierarchical & DBSCAN |
+| Markphil Okao | SCT213-C002-0047/2023 | `evaluation.py` — Metrics, elbow, k-distance, dendrogram, table |
+| Jeremiah Onywere | SCT213-C002-0097/2023 | Report compilation & submission |
 
 ---
 
@@ -258,3 +259,4 @@ jupyter notebook notebooks/Capstone\ Project\ Group\ 4.ipynb
 - Wholesale Customers Dataset: [archive.ics.uci.edu/dataset/292](https://archive.ics.uci.edu/dataset/292/wholesale+customers+data)
 - [scikit-learn Clustering Documentation](https://scikit-learn.org/stable/modules/clustering.html)
 - [scikit-learn Decomposition (PCA)](https://scikit-learn.org/stable/modules/decomposition.html#pca)
+- Ester, M., et al. (1996). A density-based algorithm for discovering clusters in large spatial databases with noise. KDD-96.
